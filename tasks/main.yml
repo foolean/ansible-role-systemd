@@ -1,0 +1,23 @@
+# Copyright (c) 2023, Bennett Samowich <bennett@foolean.org>
+# All rights reserved
+# SPDX short identifier: BSD-3-Clause
+---
+
+- name: Ensure core dump storage is disabled (CIS)
+  become: true
+  community.general.ini_file:
+    path: '/etc/systemd/coredump.conf'
+    section: 'Coredump'
+    option: 'Storage'
+    value: 'none'
+    no_extra_spaces: true
+
+
+- name: Ensure core dump backtraces are disabled (CIS)
+  become: true
+  community.general.ini_file:
+    path: '/etc/systemd/coredump.conf'
+    section: 'Coredump'
+    option: 'ProcessMaxSize'
+    value: '0'
+    no_extra_spaces: true
