@@ -3,115 +3,136 @@
 # SPDX short identifier: BSD-3-Clause
 ---
 
+# We put the entire role in a block so we can create
+# a role specific tag, which saves the caller from
+# having to do so in their playbook.
 - name: Role foolean/systemd
   block:
-  - name: Ensure core dump storage is disabled (CIS)
-    become: true
-    community.general.ini_file:
-      path: '/etc/systemd/coredump.conf'
-      section: 'Coredump'
-      option: 'Storage'
-      value: 'none'
-      no_extra_spaces: true
+    - name: Ensure core dump storage is disabled (CIS)
+      become: true
+      community.general.ini_file:
+        path: '/etc/systemd/coredump.conf'
+        section: 'Coredump'
+        option: 'Storage'
+        value: 'none'
+        no_extra_spaces: true
+        owner: 'root'
+        group: 'root'
+        mode: '0644'
 
-  - name: Ensure core dump backtraces are disabled (CIS)
-    become: true
-    community.general.ini_file:
-      path: '/etc/systemd/coredump.conf'
-      section: 'Coredump'
-      option: 'ProcessMaxSize'
-      value: '0'
-      no_extra_spaces: true
+    - name: Ensure core dump backtraces are disabled (CIS)
+      become: true
+      community.general.ini_file:
+        path: '/etc/systemd/coredump.conf'
+        section: 'Coredump'
+        option: 'ProcessMaxSize'
+        value: '0'
+        no_extra_spaces: true
+        owner: 'root'
+        group: 'root'
+        mode: '0644'
 
-  - name: CIS | Ensure journald is configured to send logs to rsyslog
-    become: true
-    community.general.ini_file:
-      path: '/etc/systemd/journald.conf'
-      section: 'Journal'
-      option: 'ForwardToSyslog'
-      value: 'yes'
-      no_extra_spaces: true
-    notify:
-      - 'Restart journald'
+    - name: CIS | Ensure journald is configured to send logs to rsyslog
+      become: true
+      community.general.ini_file:
+        path: '/etc/systemd/journald.conf'
+        section: 'Journal'
+        option: 'ForwardToSyslog'
+        value: 'yes'
+        no_extra_spaces: true
+        owner: 'root'
+        group: 'root'
+        mode: '0644'
+      notify:
+        - 'Restart journald'
 
-  - name: CIS | Ensure journald service is enabled
-    ansible.builtin.systemd:
-      name: 'systemd-journald.service'
-      masked: false
-      enabled: true
-      state: started
-    notify:
-      - 'Restart journald'
+    - name: CIS | Ensure journald service is enabled
+      ansible.builtin.systemd:
+        name: 'systemd-journald.service'
+        masked: false
+        enabled: true
+        state: started
+      notify:
+        - 'Restart journald'
 
-  - name: CIS | Ensure journald is configured to compress large log files
-    become: true
-    community.general.ini_file:
-      path: '/etc/systemd/journald.conf'
-      section: 'Journal'
-      option: 'Compress'
-      value: 'yes'
-      no_extra_spaces: true
-    notify:
-      - 'Restart journald'
+    - name: CIS | Ensure journald is configured to compress large log files
+      become: true
+      community.general.ini_file:
+        path: '/etc/systemd/journald.conf'
+        section: 'Journal'
+        option: 'Compress'
+        value: 'yes'
+        no_extra_spaces: true
+        owner: 'root'
+        group: 'root'
+        mode: '0644'
+      notify:
+        - 'Restart journald'
 
-  - name: CIS | Ensure journald is configured to write logfiles to persistent disk
-    become: true
-    community.general.ini_file:
-      path: '/etc/systemd/journald.conf'
-      section: 'Journal'
-      option: 'Storage'
-      value: 'persistent'
-      no_extra_spaces: true
-    notify:
-      - 'Restart journald'
+    - name: CIS | Ensure journald is configured to write logfiles to persistent disk
+      become: true
+      community.general.ini_file:
+        path: '/etc/systemd/journald.conf'
+        section: 'Journal'
+        option: 'Storage'
+        value: 'persistent'
+        no_extra_spaces: true
+        owner: 'root'
+        group: 'root'
+        mode: '0644'
+      notify:
+        - 'Restart journald'
 
-  - name: Don't split journald files
-    become: true
-    community.general.ini_file:
-      path: '/etc/systemd/journald.conf'
-      section: 'Journal'
-      option: 'SplitMode'
-      value: 'none'
-      no_extra_spaces: true
-    notify:
-      - 'Restart journald'
+    - name: Don't split journald files
+      become: true
+      community.general.ini_file:
+        path: '/etc/systemd/journald.conf'
+        section: 'Journal'
+        option: 'SplitMode'
+        value: 'none'
+        no_extra_spaces: true
+        owner: 'root'
+        group: 'root'
+        mode: '0644'
+      notify:
+        - 'Restart journald'
 
-  - name: Create systemd-journald service override directory
-    become: true
-    ansible.builtin.file:
-      name: '/etc/systemd/system/systemd-journald.service.d'
-      state: directory
-      owner: 'root'
-      group: 'root'
-      mode: '0755'
+    - name: Create systemd-journald service override directory
+      become: true
+      ansible.builtin.file:
+        name: '/etc/systemd/system/systemd-journald.service.d'
+        state: directory
+        owner: 'root'
+        group: 'root'
+        mode: '0755'
 
-  # This assists with 'Ensure permissions on all logfiles are configured'
-  - name: Set umask for journald
-    become: true
-    ansible.builtin.template:
-      src: 'etc/systemd/system/systemd-journald.service.d/override.conf.j2'
-      dest: '/etc/systemd/system/systemd-journald.service.d/override.conf'
-      owner: 'root'
-      group: 'root'
-      mode: '0644'
-    notify:
-      - 'Restart journald'
+    # This assists with 'Ensure permissions on all logfiles are configured'
+    - name: Set umask for journald
+      become: true
+      ansible.builtin.template:
+        src: 'etc/systemd/system/systemd-journald.service.d/override.conf.j2'
+        dest: '/etc/systemd/system/systemd-journald.service.d/override.conf'
+        owner: 'root'
+        group: 'root'
+        mode: '0644'
+      notify:
+        - 'Restart journald'
 
-  - name: CIS | Ensure journald default file permissions configured
-    become: true
-    ansible.builtin.template:
-      src: 'etc/tmpfiles.d/systemd.conf.j2'
-      dest: '/etc/tmpfiles.d/systemd.conf'
-      owner: 'root'
-      group: 'root'
-      mode: '0640'
-    notify:
-      - 'Restart journald'
+    - name: CIS | Ensure journald default file permissions configured
+      become: true
+      ansible.builtin.template:
+        src: 'etc/tmpfiles.d/systemd.conf.j2'
+        dest: '/etc/tmpfiles.d/systemd.conf'
+        owner: 'root'
+        group: 'root'
+        mode: '0640'
+      notify:
+        - 'Restart journald'
 
-  # Flush any handlers that we might have called
-  - name: Flush handlers
-    ansible.builtin.meta:
-      flush_handlers
+    # Flush any handlers that we might have called
+    - name: Flush handlers
+      ansible.builtin.meta:
+        flush_handlers
 
   tags:
     - 'role_foolean_systemd'
